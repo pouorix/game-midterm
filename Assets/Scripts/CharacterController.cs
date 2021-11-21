@@ -54,13 +54,15 @@ public class CharacterController : MonoBehaviour
             canJump = false;
             rb.AddForce(transform.up * jumpAmount, ForceMode2D.Impulse);
         }
-
-        if (isOnFloor && deltaY==0 && canJump)
+        else if (isOnFloor && deltaY==0 && canJump)
         {
             canJump = false;
             StartCoroutine(ChangeFindingText());
         }
         Debug.Log(isOnFloor);
+        Debug.Log(deltaY);
+        Debug.Log(canJump);
+
 
 
     }
@@ -71,7 +73,8 @@ public class CharacterController : MonoBehaviour
         if (deltaY==0)
         {
             rb.AddForce(transform.up * jumpAmount, ForceMode2D.Impulse);
-           // canJump = false;
+            canJump = true;
+            // canJump = false;
         }
 
 
