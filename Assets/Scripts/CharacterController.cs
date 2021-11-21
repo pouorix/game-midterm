@@ -10,14 +10,25 @@ public class CharacterController : MonoBehaviour
     public float factor = 0.01f;
     public Rigidbody2D rb;
     public float jumpAmount = 0.5f;
+   public EventSystemCustomLogic eventSystem;
+   private float touchedGround;
+   private float lastY;
+   private float deltaY;
+   private bool isOnFloor;
+   private bool canJump;
     void Start()
     {
         moveVector = new Vector3(1 * factor, 0, 0);
+        lastY = transform.position.y;
+        isOnFloor = false;
+        canJump = true;
     }
 
     // Update is called once per frame
     void Update()
     {
+        deltaY = transform.position.y - lastY;
+        lastY = transform.position.y;
         if (Input.GetKey(KeyCode.D))
         {
             transform.position += moveVector;
@@ -38,14 +49,57 @@ public class CharacterController : MonoBehaviour
                     gameObject.transform.localScale.y, gameObject.transform.localScale.z);
             }
         }
+        if (isOnFloor && deltaY<0 && canJump)
+        {
+            canJump = false;
+            rb.AddForce(transform.up * jumpAmount, ForceMode2D.Impulse);
+        }
+
+        if (isOnFloor && deltaY==0 && canJump)
+        {
+            canJump = false;
+            StartCoroutine(ChangeFindingText());
+        }
+        Debug.Log(isOnFloor);
+
+
+    }
+
+    IEnumerator ChangeFindingText()
+    {
+        yield return new WaitForSecondsRealtime(.2f);
+        if (deltaY==0)
+        {
+            rb.AddForce(transform.up * jumpAmount, ForceMode2D.Impulse);
+           // canJump = false;
+        }
+
+
     }
 
     private void OnCollisionEnter2D(Collision2D other)
     {
+
         if (other.gameObject.CompareTag("ground"))
         {
-            rb.AddForce(transform.up * jumpAmount, ForceMode2D.Impulse);
+            isOnFloor = true;
+            if (touchedGround != other.gameObject.transform.position.y)
+            {
+                eventSystem.OnGroundTouch.Invoke();
+            }
+
+            touchedGround = other.gameObject.transform.position.y;
+
         }
 
+    }
+
+    private void OnCollisionExit2D(Collision2D other)
+    {
+        if (other.gameObject.CompareTag("ground"))
+        {
+            isOnFloor = false;
+            canJump = true;
+        }
     }
 }
